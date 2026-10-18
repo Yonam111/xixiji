@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>嘻嘻集 - 校园二手书与闲置物品交易平台</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800 flex flex-col min-h-screen">
+
+    <!-- 顶部导航栏 -->
+    <header class="bg-white border-b border-gray-200 sticky top-0 z-50 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-6">
+                <div class="flex items-center space-x-2 cursor-pointer" onclick="switchTab('home')">
+                    <div class="w-10 h-10 bg-teal-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shadow-md">嘻</div>
+                    <span class="text-xl font-bold tracking-wide text-gray-900">嘻嘻集</span>
+                </div>
+                <div class="hidden md:flex items-center space-x-2 text-sm text-gray-500 bg-gray-100 px-3 py-1.5 rounded-full">
+                    <i class="fa-solid fa-location-dot text-teal-600"></i>
+                    <span>校区：大学城主校区</span>
+                </div>
+            </div>
+            
+            <!-- 搜索框 -->
+            <div class="flex-1 max-w-lg mx-6 hidden sm:block">
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-gray-400">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </span>
+                    <input type="text" id="searchInput" oninput="handleSearch()" placeholder="搜索高等数学、考研资料、大学英语、数码3C..." 
+                        class="w-full pl-10 pr-4 py-2 bg-gray-100 border border-transparent rounded-full focus:bg-white focus:border-teal-500 focus:outline-none text-sm transition-all">
+                </div>
+            </div>
+
+            <!-- 右侧操作区 -->
+            <div class="flex items-center space-x-4">
+                <button onclick="switchTab('orders')" class="relative p-2 text-gray-600 hover:text-teal-600 transition-colors">
+                    <i class="fa-solid fa-clipboard-list text-xl"></i>
+                    <span id="orderBadge" class="absolute top-1 right-1 bg-red-500 text-white text-xs rounded-full h-4 w-4 flex items-center justify-center font-bold hidden">0</span>
+                </button>
+                <button onclick="switchTab('publish')" class="bg-teal-600 hover:bg-teal-700 text-white px-4 py-2 rounded-full text-sm font-medium shadow-sm transition-all flex items-center space-x-2">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>发布闲置</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- 主体内容区 -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        <!-- 首页视图 -->
+        <div id="view-home" class="space-y-6">
+            <!-- 宣传Banner -->
+            <div class="bg-gradient-to-r from-teal-700 to-teal-800 rounded-2xl p-6 sm:p-8 text-white shadow-md flex flex-col sm:flex-row items-center justify-between">
+                <div class="space-y-2 mb-4 sm:mb-0">
+                    <span class="bg-teal-500/40 text-teal-100 text-xs px-3 py-1 rounded-full font-medium">嘻嘻集官方认证平台</span>
+                    <h1 class="text-2xl sm:text-3xl font-bold">让每一本闲置好书发光，让低碳校园更有温度</h1>
+                    <p class="text-teal-100 text-sm">依托楼长自提网络，免除跨省运费，买卖双方本校极速直达。</p>
+                </div>
+                <div class="flex space-x-3">
+                    <button onclick="filterCategory('all')" class="bg-white text-teal-800 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-gray-100 transition-colors shadow">全部商品</button>
+                    <button onclick="filterCategory('textbook')" class="bg-teal-900/60 text-white border border-teal-500/30 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-teal-900 transition-colors">二手教材专区</button>
+                </div>
+            </div>
+
+            <!-- 分类筛选导航条 -->
+            <div class="flex items-center space-x-2 overflow-x-auto pb-2 scrollbar-none">
+                <button onclick="filterCategory('all')" id="cat-all" class="cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-teal-600 text-white shadow-sm transition-all">全部</button>
+                <button onclick="filterCategory('textbook')" id="cat-textbook" class="cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition-all">大学教材</button>
+                <button onclick="filterCategory('exam')" id="cat-exam" class="cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition-all">考研复习</button>
+                <button onclick="filterCategory('literature')" id="cat-literature" class="cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition-all">文学课外</button>
+                <button onclick="filterCategory('digital')" id="cat-digital" class="cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition-all">数码3C</button>
+                <button onclick="filterCategory('life')" id="cat-life" class="cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition-all">生活闲置</button>
+            </div>
+
+            <!-- 商品网格展示 -->
+            <div id="productGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4">
+                <!-- 商品动态渲染 -->
+            </div>
+        </div>
+
+        <!-- 商品详情视图 -->
+        <div id="view-detail" class="hidden space-y-6">
+            <button onclick="switchTab('home')" class="text-sm text-teal-600 hover:text-teal-700 font-medium flex items-center space-x-1">
+                <i class="fa-solid fa-arrow-left"></i>
+                <span>返回商品列表</span>
+            </button>
+            <div id="detailContainer" class="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- 详情内容动态加载 -->
+            </div>
+        </div>
+
+        <!-- 发布闲置视图 -->
+        <div id="view-publish" class="hidden max-w-2xl mx-auto bg-white rounded-2xl border border-gray-200 p-8 shadow-sm space-y-6">
+            <div class="flex items-center justify-between border-b pb-4">
+                <h2 class="text-xl font-bold text-gray-900">发布校园闲置与二手书</h2>
+                <button onclick="switchTab('home')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="publishForm" onsubmit="handlePublish(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">物品名称 / 书籍全名</label>
+                    <input type="text" id="pubTitle" required placeholder="如：高等数学同济第七版上下册（含笔记）" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm">
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">所属分类</label>
+                        <select id="pubCategory" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm bg-white">
+                            <option value="textbook">大学教材</option>
+                            <option value="exam">考研复习</option>
+                            <option value="literature">文学课外</option>
+                            <option value="digital">数码3C</option>
+                            <option value="life">生活闲置</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">转手价格 (元)</label>
+                        <input type="number" id="pubPrice" required min="1" step="0.5" placeholder="12.00" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm">
+                    </div>
+                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">新旧程度</label>
+                        <select id="pubCondition" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm bg-white">
+                            <option value="全新/几乎全新">全新 / 几乎全新</option>
+                            <option value="9成新">9成新（无勾画）</option>
+                            <option value="8成新">8成新（有少量笔记）</option>
+                            <option value="7成新及以下">7成新及以下</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">校内自提点</label>
+                        <select id="pubLocation" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm bg-white">
+                            <option value="1号宿舍楼一楼大厅">1号宿舍楼一楼大厅</option>
+                            <option value="3号宿舍楼快递驿站旁">3号宿舍楼快递驿站旁</option>
+                            <option value="图书馆正门阶梯处">图书馆正门阶梯处</option>
+                            <option value="第四食堂门口自提点">第四食堂门口自提点</option>
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">实物图片链接 (URL)</label>
+                    <input type="url" id="pubImage" required placeholder="输入图片直链，或使用默认图" value="https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?w=500&q=80" class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">详细描述与备注</label>
+                    <textarea id="pubDesc" rows="3" placeholder="例如：考研上岸直出，书本干净整洁，附带学长高分笔记..." class="w-full px-4 py-2 border rounded-lg focus:ring-2 focus:ring-teal-500 focus:outline-none text-sm"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-teal-600 hover:bg-teal-700 text-white py-2.5 rounded-lg font-medium text-sm transition-all shadow">立即上架发布</button>
+            </form>
+        </div>
+
+        <!-- 我的订单视图 -->
+        <div id="view-orders" class="hidden space-y-4 max-w-3xl mx-auto">
+            <div class="flex items-center justify-between border-b pb-4">
+                <h2 class="text-xl font-bold text-gray-900">我的已购订单</h2>
+                <button onclick="switchTab('home')" class="text-sm text-teal-600 hover:underline">返回继续浏览</button>
+            </div>
+            <div id="orderList" class="space-y-4">
+                <!-- 动态订单列表 -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- 页脚 -->
+    <footer class="bg-white border-t border-gray-200 mt-12 py-6 text-center text-xs text-gray-500">
+        <p>嘻嘻集二手 - 校园二手书与闲置物品交易中介平台 &copy; 2026 | 绿色低碳校园循环生态</p>
+    </footer>
+
+    <!-- JavaScript 交互逻辑 -->
+    <script>
+        // 包含35+本高质量二手图书与闲置的数据库
+        let products = [
+            { id: 1, title: "高等数学（同济第七版上下册）", category: "textbook", price: 12.00, condition: "8成新", location: "图书馆正门阶梯处", seller: "张同学 (数学系)", image: " https://img10.360buyimg.com/pcpubliccms/s1440x1440_jfs/t1/11778/30/8309/41455/5c6cb98cE019de05c/7f0b1022e4130167.jpg.avif ", desc: "重点章节有详细公式推导和荧光笔标记。" },
+            { id: 2, title: "线性代数与解析几何（第4版）", category: "textbook", price: 8.00, condition: "9成新", location: "1号宿舍楼一楼大厅", seller: "李同学", image: " https://img10.360buyimg.com/pcpubliccms/s1440x1440_jfs/t1/517481/16/8888/81869/6aa6e795F8224f2a9/00833203203e354d.jpg.avif ", desc: "工科必修课，无缺页，干净整洁。" },
+            { id: 3, title: "张宇考研数学1000题（全套精装）", category: "exam", price: 28.00, condition: "全新", location: "3号宿舍楼快递驿站旁", seller: "王学姐", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/390608/12/22117/55911/699079fdFa4e9795b/00a95008e35e9017.jpg.dpg ", desc: "考研数学必备金题，已上岸低价打包。" },
+            { id: 4, title: "考研英语红宝书必考词汇", category: "exam", price: 9.00, condition: "9成新", location: "第四食堂自提点", seller: "赵同学", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/514835/13/1668/268335/6a8ed417Fe944f6ef/00a943878040e59d.jpg.dpg ", desc: "核心单词无严重涂改，背诵效率高。" },
+            { id: 5, title: "大学英语四六级核心词汇与真题全解", category: "exam", price: 15.00, condition: "9成新", location: "图书馆正门阶梯处", seller: "孙同学", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/348318/11/18016/68275/69003c0dF0cf3e39e/e7160dffcfb45ec9.jpg.dpg ", desc: "包含最近10套真题及详细解析。" },
+            { id: 6, title: "曼昆《经济学原理》微观+宏观（上下册）", category: "textbook", price: 32.00, condition: "9成新", location: "图书馆正门阶梯处", seller: "刘同学", image: " https://img10.360buyimg.com/pcpubliccms/s1440x1440_jfs/t1/428901/30/8652/100905/69f703c0Fcaf4f455/0083320320a0fa74.jpg.avif ", desc: "经管类通选课必备圣经。" },
+            { id: 7, title: "算法导论（原书第3版中文版）", category: "textbook", price: 18.00, condition: "8成新", location: "1号宿舍楼一楼大厅", seller: "陈学长", image: " https://img12.360buyimg.com/pcpubliccms/s1440x1440_g9/M03/10/0C/rBEHalDFX10IAAAAAAMtdd_bKwEAADM6gOC6NoAAy2N265.jpg ", desc: "计算机专业大部头，经典不容错过。" },
+            { id: 8, title: "Python编程：从入门到实践（第3版）", category: "textbook", price: 16.00, condition: "全新", location: "3号宿舍楼快递驿站旁", seller: "周同学", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/504329/39/10849/3206183/6a896fabF102e5cf9/00a99000003977ee.jpg.dpg ", desc: "零基础学习神器，带电子资源。" },
+            { id: 9, title: "大学物理学（上册+下册）", category: "textbook", price: 14.00, condition: "8成新", location: "第四食堂自提点", seller: "郑同学", image: " https://img12.360buyimg.com/imgzone/jfs/t1/514403/13/6494/86218/6a99b2aeF03ba201c/008332032047319d.jpg.avif ", desc: "理工科通选教材，课后习题答案齐全。" },
+            { id: 10, title: "三体全集（刘慈欣著 科幻经典）", category: "literature", price: 8.00, condition: "9成新", location: "第四食堂自提点", seller: "林同学", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/458604/22/20000/117607/6a429266F5e7e7010/00a932f57f870020.jpg.dpg ", desc: "三册套装，科幻迷必读。" },
+            { id: 11, title: "百年孤独（加西亚·马尔克斯）", category: "literature", price: 10.00, condition: "9成新", location: "1号楼大厅", seller: "郭同学", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/430458/40/13376/192595/6a030180Fdcd0349b/00a9438780c0dd83.jpg.dpg ", desc: "魔幻现实主义代表作。" },
+            { id: 12, title: "C++ Primer Plus 中文版（第6版）", category: "textbook", price: 20.00, condition: "8成新", location: "图书馆阶梯", seller: "吴同学", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/46473/15/20760/85087/62efc7caEba3e743b/52d843da7dcac777.jpg.dpg ", desc: "C++开发经典圣经。" },
+            { id: 13, title: "有机化学（第5版）上册", category: "textbook", price: 12.00, condition: "8成新", location: "3号楼驿站", seller: "钱同学", image: " https://img30.360buyimg.com/shaidan/s300x300_g15/M02/17/1C/rBEhWVKRhhYIAAAAAA19Xj9ZwU0AAF38gLpj3cADX12970.jpg.dpg ", desc: "医学生/化学生物必修。" },
+            { id: 14, title: "肖秀荣考研政治精讲精练", category: "exam", price: 15.00, condition: "全新", location: "四食堂", seller: "孙学姐", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/489729/24/13948/179369/6a81515bFcd0ececb/00a9438780dd36e5.jpg.dpg ", desc: "考研政治红宝书，备考必备。" },
+            { id: 15, title: "雅思剑桥真题集 4-14册合集", category: "exam", price: 25.00, condition: "9成新", location: "图书馆", seller: "冯同学", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/421927/26/18616/191787/69ec7583F2ae89269/00a94387809e6e50.jpg.dpg ", desc: "雅思官方真题，听力阅读无笔记。" },
+            { id: 16, title: "数据结构与算法分析（C语言版）", category: "textbook", price: 15.00, condition: "8成新", location: "1号楼大厅", seller: "马同学", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/369195/37/7499/398803/692a7ae6F5ab49acb/d73c5ff47b85ec69.jpg.dpg ", txt: "经典考研与面试教材。" },
+            { id: 17, title: "现代操作系统（第4版）", category: "textbook", price: 18.00, condition: "8成新", location: "图书馆阶梯", seller: "朱同学", image: " https://img10.360buyimg.com/imgzone/jfs/t1/260420/31/5807/107187/67734677Fafe105a0/43e3863d93e41bf9.jpg.avif ", desc: "计算机四大天王之一。" },
+            { id: 18, title: "计算机网络（第7版 谢希仁）", category: "textbook", price: 14.00, condition: "9成新", location: "3号楼驿站", seller: "何同学", image: " https://img10.360buyimg.com/pcpubliccms/s1440x1440_jfs/t1/342859/13/4435/95084/68ca77a9F16a92eb6/c32661d1390d8c87.jpg.avif ", desc: "网课配合复习最佳资料。" },
+            { id: 19, title: "解忧杂货店（东野圭吾著）", category: "literature", price: 6.00, condition: "9成新", location: "四食堂", seller: "高同学", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/131122/9/5418/124899/5f1c2dc3E79d8b279/324a0dce497683d8.jpg.dpg ", desc: "暖心畅销小说。" },
+            { id: 20, title: "白夜行（东野圭吾悬疑推理小说）", category: "literature", price: 7.00, condition: "9成新", location: "1号楼大厅", seller: "罗同学", image: " https://img13.360buyimg.com/pcpubliccms/jfs/t1/516928/12/10867/24750/6aa46092Fd0704602/00833203206cd6ea.jpg.avif ", desc: "经典推理悬疑书目。" },
+            { id: 21, title: "心理学与生活（第16版）", category: "textbook", price: 22.00, condition: "9成新", location: "图书馆", seller: "梁同学", image: " https://img10.360buyimg.com/pcpubliccms/s1440x1440_jfs/t1/67033/18/26481/102188/66bc5c3eF58406f86/ca7e62d2ba25ddba.jpg.avif ", desc: "心理学入门通识经典。" },
+            { id: 22, title: "普通生物学（陈阅增第4版）", category: "textbook", price: 16.00, condition: "8成新", location: "3号楼驿站", seller: "谢同学", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/388564/28/9372/84285/69718d4dF5de624a2/00a9438780e05774.jpg.dpg ", desc: "生命科学核心大课教材。" },
+            { id: 23, title: "微观经济学分册（第8版）", category: "textbook", price: 15.00, condition: "9成新", location: "四食堂", seller: "宋同学", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/67016/22/22272/261713/64436955F3f5b77c4/940eab20231e6059.jpg.dpg ", desc: "经管学院基础教材。" },
+            { id: 24, title: "宏观经济学分册（第8版）", category: "textbook", price: 15.00, condition: "9成新", location: "四食堂", seller: "宋同学", image: " https://img10.360buyimg.com/pcpubliccms/s1440x1440_jfs/t1/538746/27/8951/113569/6aca41b2F8512d2ca/0083320320fffaac.png.avif ", desc: "经管学院基础教材。" },
+            { id: 25, title: "法理学导论（高校法学核心教材）", category: "textbook", price: 13.00, condition: "8成新", location: "1号楼大厅", seller: "唐同学", image: " https://img13.360buyimg.com/pcpubliccms/jfs/t1/220653/33/838/266425/616d2ac4Ef1608f34/c3d6a9e9b855479e.jpg.avif ", desc: "法学专业基础课必读。" },
+            { id: 26, title: "民法总论（中国政法大学出版）", category: "textbook", price: 16.00, condition: "9成新", location: "图书馆", seller: "邓同学", image: " https://img10.360buyimg.com/pcpubliccms/s1440x1440_jfs/t1/425006/7/3115/96253/69e9b339Fb98b0685/008332032060eb8e.jpg.avif ", desc: "法考与期末复习神器。" },
+            { id: 27, title: "刑法学分论（第9版）", category: "textbook", price: 18.00, condition: "8成新", location: "3号楼驿站", seller: "曹同学", image: " https://img10.360buyimg.com/pcpubliccms/s1440x1440_jfs/t1/17165/23/11648/257573/5c91f44fE20d432bb/23efbd525d553cce.jpg.avif ", desc: "重点法条有详细标记。" },
+            { id: 28, title: "艺术设计概论（第3版）", category: "textbook", price: 12.00, condition: "9成新", location: "四食堂", selector: "曾同学", image: " https://img10.360buyimg.com/pcpubliccms/s1440x1440_jfs/t1/503048/37/9616/17327/6a88690fF1ba85579/0083320320f9e20b.jpg.avif ", desc: "设计学考研与期末必备。" },
+            { id: 29, title: "UI与UX移动端界面设计艺术", category: "textbook", price: 20.00, condition: "全新", location: "图书馆", seller: "彭同学", image: " https://img10.360buyimg.com/pcpubliccms/s1440x1440_jfs/t29848/208/1293907016/586844/3da61356/5cdb7d64N66bbb89b.jpg.avif ", desc: "互联网大厂设计规范参考书。" },
+            { id: 30, title: "活着（余华著 经典文学小说）", category: "literature", price: 5.00, condition: "9成新", location: "1号楼大厅", seller: "萧同学", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/481441/4/6516/3276721/6a5d97c5F267ac5e3/00a90000003702ad.jpg.dpg ", desc: "当代文学经典震撼之作。" },
+            { id: 31, title: "苹果 iPad (第9世代) 64GB 银色", category: "digital", price: 1350.00, condition: "9成新", location: "图书馆正门阶梯处", seller: "吴同学", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/475842/10/17393/2131593/6a5b95dbF13a5c011/00a9fc08dc534ea0.jpg.dpg ", desc: "平时主要用来上课记笔记和看网课，无磕碰。" },
+            { id: 32, title: "罗技 G304 无线电竞鼠标", category: "digital", price: 65.00, condition: "9成新", location: "3号宿舍楼快递驿站旁", seller: "韩同学", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/405045/15/18883/2495997/69be3054F37938753/00a9f40700b213ad.jpg.dpg ", desc: "按键灵敏，宿舍打游戏利器。" },
+            { id: 33, title: "雅马哈 F310 原声民谣吉他（含琴包）", category: "life", price: 260.00, condition: "8成新", location: "1号宿舍楼一楼大厅", seller: "孙同学", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/543778/2/158/3457969/6ac4a0f7F22534ed0/00a9c000005220eb.jpg.dpg ", desc: "校园乐队入门经典琴型，音准良好。" },
+            { id: 34, title: "宿舍便携式折叠台灯（三色光）", category: "life", price: 18.00, condition: "全新", location: "第四食堂门口自提点", seller: "许同学", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/169495/34/40915/162873/64eb2f78F9f4c49a0/f84b81f707287758.jpg.dpg ", desc: "充插两用，晚上看书不伤眼。" },
+            { id: 35, title: "小米米家桌面空气加湿器", category: "life", price: 35.00, condition: "9成新", location: "3号宿舍楼快递驿站旁", seller: "丁同学", image: " https://img30.360buyimg.com/shaidan/s300x300_jfs/t1/435399/34/11584/66269/6a0badebF3ed66306/00a95286e0c9d50f.jpg.dpg ", desc: "秋冬宿舍保湿神器，静音运行。" }
+        ];
+
+        let orders = [];
+        let currentCategory = 'all';
+
+        // 切换视图函数
+        function switchTab(tabId) {
+            ['home', 'detail', 'publish', 'orders'].forEach(id => {
+                document.getElementById('view-' + id).classList.add('hidden');
+            });
+            document.getElementById('view-' + tabId).classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+            if (tabId === 'home') renderProducts();
+        }
+
+        // 渲染商品列表
+        function renderProducts(list = products) {
+            const grid = document.getElementById('productGrid');
+            if (list.length === 0) {
+                grid.innerHTML = `<div class="col-span-full py-12 text-center text-gray-400">没有找到相关的闲置物品或书籍</div>`;
+                return;
+            }
+            grid.innerHTML = list.map(item => `
+                <div onclick="showDetail(${item.id})" class="bg-white rounded-xl border border-gray-200 overflow-hidden shadow-sm hover:shadow-md hover:border-teal-500 transition-all cursor-pointer flex flex-col">
+                    <div class="h-40 w-full bg-gray-100 overflow-hidden relative">
+                        <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover">
+                        <span class="absolute top-2 left-2 bg-black/60 backdrop-blur-sm text-white text-[10px] px-2 py-0.5 rounded-full">${item.condition}</span>
+                    </div>
+                    <div class="p-3 flex-1 flex flex-col justify-between space-y-2">
+                        <h3 class="text-sm font-semibold text-gray-800 line-clamp-2">${item.title}</h3>
+                        <div>
+                            <div class="text-teal-600 font-bold text-base">￥${item.price.toFixed(2)}</div>
+                            <div class="text-[11px] text-gray-400 truncate mt-1 flex items-center space-x-1">
+                                <i class="fa-solid fa-location-dot"></i>
+                                <span>自提：${item.location}</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 分类筛选
+        function filterCategory(cat) {
+            currentCategory = cat;
+            document.querySelectorAll('.cat-btn').forEach(btn => {
+                btn.className = "cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-white text-gray-600 hover:bg-gray-100 border border-gray-200 transition-all";
+            });
+            const activeBtn = document.getElementById('cat-' + cat);
+            if(activeBtn) {
+                activeBtn.className = "cat-btn px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap bg-teal-600 text-white shadow-sm transition-all";
+            }
+            
+            if (cat === 'all') {
+                renderProducts(products);
+            } else {
+                renderProducts(products.filter(p => p.category === cat));
+            }
+        }
+
+        // 搜索功能
+        function handleSearch() {
+            const query = document.getElementById('searchInput').value.trim().toLowerCase();
+            const filtered = products.filter(p => p.title.toLowerCase().includes(query) || p.desc.toLowerCase().includes(query));
+            renderProducts(filtered);
+        }
+
+        // 显示商品详情
+        function showDetail(id) {
+            const item = products.find(p => p.id === id);
+            if (!item) return;
+            
+            const container = document.getElementById('detailContainer');
+            container.innerHTML = `
+                <div class="rounded-xl overflow-hidden bg-gray-100 h-80 md:h-[400px]">
+                    <img src="${item.image}" alt="${item.title}" class="w-full h-full object-cover">
+                </div>
+                <div class="flex flex-col justify-between space-y-4">
+                    <div>
+                        <div class="flex items-center space-x-2 mb-2">
+                            <span class="bg-teal-100 text-teal-800 text-xs px-2.5 py-1 rounded-full font-medium">${item.condition}</span>
+                            <span class="text-xs text-gray-400">发布者：${item.seller}</span>
+                        </div>
+                        <h1 class="text-xl sm:text-2xl font-bold text-gray-900 mb-3">${item.title}</h1>
+                        <div class="text-2xl font-extrabold text-teal-600 mb-4">￥${item.price.toFixed(2)}</div>
+                        <div class="bg-gray-50 rounded-xl p-3 space-y-2 text-sm text-gray-600 border border-gray-100">
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-location-dot text-teal-600"></i>
+                                <span><strong>校内自提点：</strong>${item.location}</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <i class="fa-solid fa-shield-halved text-teal-600"></i>
+                                <span><strong>交易保障：</strong>嘻嘻集二手校内实名认证，当面检查无误后楼长网点确认</span>
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <h4 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">卖家描述</h4>
+                            <p class="text-sm text-gray-600 leading-relaxed">${item.desc}</p>
+                        </div>
+                    </div>
+                    <button onclick="buyProduct(${item.id})" class="w-full bg-teal-600 hover:bg-teal-700 text-white py-3 rounded-xl font-semibold shadow-md transition-all flex items-center justify-center space-x-2">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span>立即下单（校内自提）</span>
+                    </button>
+                </div>
+            `;
+            switchTab('detail');
+        }
+
+        // 下单购买模拟
+        function buyProduct(id) {
+            const item = products.find(p => p.id === id);
+            if (!item) return;
+
+            const order = {
+                orderNo: 'XX' + Date.now().toString().slice(-6),
+                title: item.title,
+                price: item.price,
+                location: item.location,
+                image: item.image,
+                time: new Date().toLocaleString()
+            };
+
+            orders.unshift(order);
+            updateOrderBadge();
+            renderOrders();
+            alert(`下单成功！\n订单编号：${order.orderNo}\n请前往“${order.location}”凭取货码当面验货自提。`);
+            switchTab('orders');
+        }
+
+        // 更新订单角标
+        function updateOrderBadge() {
+            const badge = document.getElementById('orderBadge');
+            if (orders.length > 0) {
+                badge.innerText = orders.length;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        // 渲染我的订单
+        function renderOrders() {
+            const list = document.getElementById('orderList');
+            if (orders.length === 0) {
+                list.innerHTML = `<div class="py-12 text-center text-gray-400 bg-white rounded-xl border border-gray-200">暂无已购订单，快去挑选需要的二手好书吧！</div>`;
+                return;
+            }
+            list.innerHTML = orders.map(o => `
+                <div class="bg-white rounded-xl border border-gray-200 p-4 flex items-center justify-between shadow-sm">
+                    <div class="flex items-center space-x-4">
+                        <img src="${o.image}" class="w-16 h-16 object-cover rounded-lg border">
+                        <div>
+                            <div class="text-xs text-gray-400">订单号：${o.orderNo} | 下单时间：${o.time}</div>
+                            <h4 class="font-semibold text-gray-800 text-sm mt-0.5">${o.title}</h4>
+                            <div class="text-xs text-teal-600 font-medium mt-1"><i class="fa-solid fa-location-dot"></i> 自提点：${o.location}</div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <div class="font-bold text-teal-600">￥${o.price.toFixed(2)}</div>
+                        <span class="inline-block bg-green-50 text-green-600 text-xs px-2.5 py-0.5 rounded-full font-medium mt-1">待自提</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // 发布闲置处理
+        function handlePublish(e) {
+            e.preventDefault();
+            const newTitle = document.getElementById('pubTitle').value;
+            const newCat = document.getElementById('pubCategory').value;
+            const newPrice = parseFloat(document.getElementById('pubPrice').value);
+            const newCond = document.getElementById('pubCondition').value;
+            const newLoc = document.getElementById('pubLocation').value;
+            const newImg = document.getElementById('pubImage').value;
+            const newDesc = document.getElementById('pubDesc').value;
+
+            const newItem = {
+                id: products.length + 1,
+                title: newTitle,
+                category: newCat,
+                price: newPrice,
+                condition: newCond,
+                location: newLoc,
+                seller: "我 (当前用户)",
+                image: newImg,
+                desc: newDesc || "暂无详细描述"
+            };
+
+            products.unshift(newItem);
+            alert("恭喜您，在【嘻嘻集二手】发布闲置成功！");
+            document.getElementById('publishForm').reset();
+            switchTab('home');
+        }
+
+        // 初始化加载
+        renderProducts();
+    </script>
+</body>
+</html>
